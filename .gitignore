@@ -1,0 +1,51 @@
+# Python
+*.pyc
+*.pyo
+*.pyd
+__pycache__
+*.pyd
+*.db
+
+# Flask
+instance/
+.env
+.env.*
+
+# IDEs
+.vscode/
+.idea/
+
+# Virtual Environment
+venv/
+env/
+.venv/
+
+# Docker
+docker-compose.override.yml
+docker-compose.yml
+
+# Logs
+*.log
+*.log.*
+
+# SQLite database
+*.sqlite3
+*.db
+
+# Distribution / packaging
+*.egg
+*.egg-info/
+dist/
+build/
+*.whl
+
+# Test coverage
+.coverage
+.tox/
+.nox/
+*.coverage
+*.hypothesis/
+.pytest_cache/
+
+# Pytest
+test_reports/

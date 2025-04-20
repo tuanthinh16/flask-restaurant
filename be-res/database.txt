@@ -1,0 +1,110 @@
+CREATE TABLE inventory_logs (
+    id INT AUTO_INCREMENT PRIMARY KEY,
+    creator VARCHAR(50),
+    create_time BIGINT,
+    modifier VARCHAR(50),
+    modify_time BIGINT,
+    is_active TINYINT DEFAULT 1,
+    inventory_id INT,
+    change_type VARCHAR(20),         -- eg: 'import', 'export'
+    quantity INT,
+    status VARCHAR(20),              -- eg: 'pending', 'approved', 'rejected'
+    note TEXT,
+    log_time BIGINT
+);
+CREATE TABLE `inventory` (
+  `id` int NOT NULL AUTO_INCREMENT,
+  `creator` varchar(255) DEFAULT NULL,
+  `create_time` bigint DEFAULT NULL,
+  `modifier` varchar(255) DEFAULT NULL,
+  `modify_time` bigint DEFAULT NULL,
+  `is_active` int DEFAULT '1',
+  `item_name` varchar(255) NOT NULL,
+  `quantity` int NOT NULL,
+  `unit` varchar(50) DEFAULT NULL,
+  `threshold` varchar(200) DEFAULT NULL,
+  PRIMARY KEY (`id`)
+)
+CREATE TABLE `menu_items` (
+  `id` int NOT NULL AUTO_INCREMENT,
+  `creator` varchar(255) DEFAULT NULL,
+  `create_time` bigint DEFAULT NULL,
+  `modifier` varchar(255) DEFAULT NULL,
+  `modify_time` bigint DEFAULT NULL,
+  `is_active` int DEFAULT '1',
+  `name` varchar(255) NOT NULL,
+  `price` decimal(10,2) NOT NULL,
+  `description` text,
+  `image` varchar(255) DEFAULT NULL,
+  PRIMARY KEY (`id`)
+) 
+CREATE TABLE `orders` (
+  `id` int NOT NULL AUTO_INCREMENT,
+  `creator` varchar(255) DEFAULT NULL,
+  `create_time` bigint DEFAULT NULL,
+  `modifier` varchar(255) DEFAULT NULL,
+  `modify_time` bigint DEFAULT NULL,
+  `is_active` int DEFAULT '1',
+  `table_id` int NOT NULL,
+  `order_time` bigint DEFAULT NULL,
+  `total` decimal(10,2) NOT NULL,
+  `status` varchar(50) DEFAULT 'pending',
+  PRIMARY KEY (`id`)
+) 
+CREATE TABLE `order_items` (
+  `id` int NOT NULL AUTO_INCREMENT,
+  `creator` varchar(255) DEFAULT NULL,
+  `create_time` bigint DEFAULT NULL,
+  `modifier` varchar(255) DEFAULT NULL,
+  `modify_time` bigint DEFAULT NULL,
+  `is_active` int DEFAULT '1',
+  `order_id` int NOT NULL,
+  `menu_item_id` int NOT NULL,
+  `quantity` int NOT NULL,
+  `price` double DEFAULT NULL,
+  PRIMARY KEY (`id`),
+  KEY `order_id` (`order_id`),
+  KEY `menu_item_id` (`menu_item_id`),
+  CONSTRAINT `order_items_ibfk_1` FOREIGN KEY (`order_id`) REFERENCES `orders` (`id`),
+  CONSTRAINT `order_items_ibfk_2` FOREIGN KEY (`menu_item_id`) REFERENCES `menu_items` (`id`)
+) 
+CREATE TABLE `reservations` (
+  `id` int NOT NULL AUTO_INCREMENT,
+  `creator` varchar(255) DEFAULT NULL,
+  `create_time` bigint DEFAULT NULL,
+  `modifier` varchar(255) DEFAULT NULL,
+  `modify_time` bigint DEFAULT NULL,
+  `is_active` int DEFAULT '1',
+  `user_id` int NOT NULL,
+  `reservation_time` bigint NOT NULL,
+  `number_of_people` int DEFAULT NULL,
+  `status` varchar(50) DEFAULT 'pending',
+  PRIMARY KEY (`id`),
+  KEY `user_id` (`user_id`),
+  CONSTRAINT `reservations_ibfk_1` FOREIGN KEY (`user_id`) REFERENCES `users` (`id`)
+)
+CREATE TABLE `tables` (
+  `id` bigint NOT NULL AUTO_INCREMENT,
+  `creator` varchar(255) NOT NULL,
+  `create_time` bigint NOT NULL,
+  `modifier` varchar(255) DEFAULT NULL,
+  `modify_time` bigint DEFAULT NULL,
+  `is_active` int DEFAULT '1',
+  `table_number` int NOT NULL,
+  `capacity` int NOT NULL,
+  PRIMARY KEY (`id`)
+) 
+CREATE TABLE `users` (
+  `id` int NOT NULL AUTO_INCREMENT,
+  `creator` varchar(255) DEFAULT NULL,
+  `create_time` bigint DEFAULT NULL,
+  `modifier` varchar(255) DEFAULT NULL,
+  `modify_time` bigint DEFAULT NULL,
+  `is_active` int DEFAULT '1',
+  `username` varchar(255) NOT NULL,
+  `password` varchar(255) NOT NULL,
+  `email` varchar(255) DEFAULT NULL,
+  `role` varchar(50) NOT NULL,
+  `last_login` bigint DEFAULT NULL,
+  PRIMARY KEY (`id`)
+) 

@@ -1,0 +1,8 @@
+docker-compose down
+docker-compose build
+docker-compose up -d
+docker-compose restart
+
+docker image prune
+docker container prune
+docker system prune -a --volumes

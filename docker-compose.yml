@@ -1,0 +1,68 @@
+services:
+  # Database service
+  db:
+    image: mysql:8.0
+    restart: always
+    env_file: .env
+    ports:
+      - "3306:3306"
+    volumes:
+      - ./database/mysql:/var/lib/mysql
+      - ./database/init.sql:/docker-entrypoint-initdb.d/init.sql
+    networks:
+      - mynetwork
+
+  # PHPMyAdmin
+  phpmyadmin:
+    image: phpmyadmin/phpmyadmin
+    restart: always
+    ports:
+      - "8080:80"
+    environment:
+      PMA_HOST: db
+    depends_on:
+      - db
+    networks:
+      - mynetwork
+
+  # Redis
+  redis:
+    image: redis:alpine
+    restart: always
+    ports:
+      - "6379:6379"
+    networks:
+      - mynetwork
+
+  # Flask service
+  be-res:
+    build: ./be-res
+    ports:
+      - "5000:5000"
+    volumes:
+      - ./be-res:/app
+      - ./logs:/app/logs
+    env_file: .env
+    depends_on:
+      - db
+      - redis
+    networks:
+      - mynetwork
+
+  # Project 2 service
+  be-order:
+    build: ./be-order
+    ports:
+      - "1314:1314"
+    volumes:
+      - ./be-order:/app
+      - ./logs:/app/logs
+    env_file: .env
+    depends_on:
+      - db
+    networks:
+      - mynetwork
+
+networks:
+  mynetwork:
+    driver: bridge
