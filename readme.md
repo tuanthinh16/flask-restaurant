@@ -6,6 +6,10 @@ Use database with Mysql, running with docker-compose
 Translate to target lang when GET methods
 Cache data for menu,table time out 300
 Limit 10 reqest per minute
+Order real-time
+Microservice:
+- **Management**: with flask & HTTP
+- **Order**:with flask & Socket
 
 ## Features
 - **Menu Management**: Add, edit, delete dishes
@@ -15,22 +19,6 @@ Limit 10 reqest per minute
 - **User System**: Manage staff accounts and permissions
 - **Transaction History**: Log inventory changes and key events
 - **Reporting**: Generate revenue, order, and inventory reports
-
-## Installation
-```bash
-git clone https://github.com/your-username/restaurant-management.git
-cd restaurant-management
-pip install -r requirements.txt
-```
-### Environment Setup
-Create a secret_key.txt file with:
-``` bash
-thinhvipnghean #your secret key
-```
-Running the Application
-```bash
-flask run
-```
 
 ## API Endpoints
 - **Optional Body**: GET: limit, start, target-lang 
