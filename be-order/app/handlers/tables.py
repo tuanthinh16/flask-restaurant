@@ -3,27 +3,25 @@ from flask_socketio import emit
 import pymysql
 from app.db import get_db
 
-locked_tables = {}
-
 def register_table_handlers(socketio):
     @socketio.on('get_tables')
     def handle_get_tables():
         try:
             db = get_db()
             cursor = db.cursor(pymysql.cursors.DictCursor)
-            cursor.execute("SELECT id, table_number, capacity, is_active,location FROM tables WHERE is_active = 1")
+            cursor.execute("SELECT id, table_number, capacity, is_active, location, status FROM tables WHERE is_active = 1")
             rows = cursor.fetchall()
             cursor.close()
             db.close()
 
             tables_data = []
             for row in rows:
-                status = 'locked' if row['id'] in locked_tables else 'available'
+                status = 'locked' if row['status'] == 1 else 'available'
                 tables_data.append({
                     'id': row['id'],
                     'table_number': row['table_number'],
                     'capacity': row['capacity'],
-                    'location':row['location'],
+                    'location': row['location'],
                     'status': status
                 })
 
@@ -45,13 +43,24 @@ def register_table_handlers(socketio):
                 emit('table_error', {'error': 'Thiếu table_id'})
                 return
 
-            if table_id in locked_tables:
-                print(f"[lock_table] Bàn {table_id} đã bị khoá bởi {locked_tables[table_id]}")
+            db = get_db()
+            cursor = db.cursor(pymysql.cursors.DictCursor)
+            cursor.execute("SELECT status FROM tables WHERE id = %s", (table_id,))
+            row = cursor.fetchone()
+
+            if not row:
+                emit('table_error', {'error': 'Bàn không tồn tại'})
+            elif row['status'] == 1:
+                print(f"[lock_table] Bàn {table_id} đã bị khoá")
                 emit('table_error', {'error': 'Bàn đã bị khoá bởi người khác'})
             else:
-                locked_tables[table_id] = sid
-                print(f"[lock_table] Bàn {table_id} đã được khoá bởi {sid}")
+                cursor.execute("UPDATE tables SET status = 1 WHERE id = %s", (table_id,))
+                db.commit()
+                print(f"[lock_table] Bàn {table_id} đã được khoá")
                 emit('table_locked', {'table_id': table_id}, broadcast=True)
+
+            cursor.close()
+            db.close()
 
         except Exception as e:
             print(f"[lock_table] Lỗi: {str(e)}")
@@ -64,27 +73,29 @@ def register_table_handlers(socketio):
             sid = request.sid
             print(f"[unlock_table] Yêu cầu mở khoá bàn {table_id} từ SID: {sid}")
 
-            if locked_tables.get(table_id) == sid:
-                locked_tables.pop(table_id, None)
-                print(f"[unlock_table] Bàn {table_id} đã được mở khoá bởi {sid}")
+            if not table_id:
+                emit('table_error', {'error': 'Thiếu table_id'})
+                return
+
+            db = get_db()
+            cursor = db.cursor(pymysql.cursors.DictCursor)
+            cursor.execute("SELECT status FROM tables WHERE id = %s", (table_id,))
+            row = cursor.fetchone()
+
+            if not row:
+                emit('table_error', {'error': 'Bàn không tồn tại'})
+            elif row['status'] == 1:
+                cursor.execute("UPDATE tables SET status = 0 WHERE id = %s", (table_id,))
+                db.commit()
+                print(f"[unlock_table] Bàn {table_id} đã được mở khoá")
                 emit('table_unlocked', {'table_id': table_id}, broadcast=True)
             else:
-                print(f"[unlock_table] Không có quyền mở khoá bàn {table_id}")
-                emit('table_error', {'error': 'Bạn không có quyền mở khoá bàn này'})
+                print(f"[unlock_table] Bàn {table_id} không bị khoá")
+                emit('table_error', {'error': 'Bàn không bị khoá hoặc đã được mở'})
+
+            cursor.close()
+            db.close()
 
         except Exception as e:
             print(f"[unlock_table] Lỗi: {str(e)}")
             emit('table_error', {'error': 'Không thể mở khoá bàn'})
-
-    @socketio.on('disconnect')
-    def handle_table_disconnect():
-        sid = request.sid
-        print(f"[disconnect] SID: {sid} ngắt kết nối, kiểm tra bàn đang khoá...")
-        try:
-            to_unlock = [tid for tid, s in locked_tables.items() if s == sid]
-            for tid in to_unlock:
-                locked_tables.pop(tid, None)
-                print(f"[disconnect] Tự động mở khoá bàn {tid} do mất kết nối")
-                emit('table_unlocked', {'table_id': tid}, broadcast=True)
-        except Exception as e:
-            print(f"[disconnect] Lỗi khi xử lý unlock: {str(e)}")

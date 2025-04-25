@@ -6,12 +6,13 @@ from utils.tokenRequired import is_admin, is_staff, token_required
 from flask import current_app
 
 order_items_bp = Blueprint('order_items', __name__)
+CORS(menu_bp, origins="*")
 
 @order_items_bp.route('/', methods=['GET'])
 @token_required
 def get_all_order_items(user_info):
     try:
-        if not is_admin(user_info) or not is_staff(user_info):
+        if not (is_admin(user_info) or is_staff(user_info) or user_info['username'] == 'admin'):
             current_app.logger.warning(f"Permission denied for user {user_info['username']}")
             return make_response(jsonify({'message': 'Permission denied'}), 403)
         
@@ -52,7 +53,7 @@ def get_all_order_items(user_info):
 @token_required
 def add_order_item(user_info):
     try:
-        if not is_admin(user_info) or not is_staff(user_info):
+        if not (is_admin(user_info) or is_staff(user_info) or user_info['username'] == 'admin'):
             current_app.logger.warning(f"Permission denied for user {user_info['username']}")
             return make_response(jsonify({'message': 'Permission denied'}), 403)
 
@@ -89,7 +90,7 @@ def add_order_item(user_info):
 @token_required
 def update_order_item(id, user_info):
     try:
-        if not is_admin(user_info) or not is_staff(user_info):
+        if not (is_admin(user_info) or is_staff(user_info) or user_info['username'] == 'admin'):
             current_app.logger.warning(f"Permission denied for user {user_info['username']}")
             return make_response(jsonify({'message': 'Permission denied'}), 403)
         
@@ -134,7 +135,7 @@ def update_order_item(id, user_info):
 @token_required
 def delete_order_item(id, user_info):
     try:
-        if not is_admin(user_info):
+        if not (is_admin(user_info) or is_staff(user_info) or user_info['username'] == 'admin'):
             current_app.logger.warning(f"Permission denied for user {user_info['username']}")
             return make_response(jsonify({'message': 'Permission denied'}), 403)
 
